@@ -79,9 +79,13 @@ export default function PlayerContent({ id }: PlayerContentProps) {
         setSummoner(summonerData);
 
         // Fetch reviews via API (secure - doesn't expose IP addresses)
+        // Use the Riot API formatted name for consistent lookups
         try {
+          const riotFormattedName = summonerData 
+            ? `${summonerData.gameName}#${summonerData.tagLine}`
+            : `${gameName}#${tagLine}`;
           const reviewsRes = await fetch(
-            `/api/reviews?summoner_name=${encodeURIComponent(`${gameName}#${tagLine}`)}`
+            `/api/reviews?summoner_name=${encodeURIComponent(riotFormattedName)}`
           );
           if (reviewsRes.ok) {
             const reviewsData = await reviewsRes.json();
@@ -110,13 +114,18 @@ export default function PlayerContent({ id }: PlayerContentProps) {
     setIsSubmitting(true);
     setSubmitError("");
     try {
+      // Use the Riot API formatted name from summoner data (not from URL)
+      const riotFormattedName = summoner 
+        ? `${summoner.gameName}#${summoner.tagLine}`
+        : `${gameName}#${tagLine}`;
+        
       const response = await fetch("/api/reviews", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          summoner_name: `${gameName}#${tagLine}`,
+          summoner_name: riotFormattedName,
           region: summoner?.region || "unknown",
           rating,
           comment: comment.trim() || null,

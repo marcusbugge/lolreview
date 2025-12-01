@@ -9,6 +9,7 @@ import { Clock, MessageSquare, Loader2 } from "lucide-react";
 interface Review {
   id: string;
   summoner_name: string;
+  display_summoner_name?: string;
   region: string;
   rating: number;
   comment: string | null;
@@ -213,7 +214,9 @@ export default function RecentContent() {
         {!isLoading && reviews.length > 0 && (
           <div className="space-y-3">
             {reviews.map((review) => {
-              const [gameName, tagLine] = review.summoner_name.split("#");
+              // Use display_summoner_name for showing (Riot formatted), but summoner_name for navigation
+              const displayName = review.display_summoner_name || review.summoner_name;
+              const [gameName, tagLine] = displayName.split("#");
 
               return (
                 <button

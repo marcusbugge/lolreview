@@ -30,15 +30,17 @@ export function PoroRating({
     }
   };
 
+  // Use span for readonly to avoid nested button issues
+  const Wrapper = readonly ? "span" : "button";
+
   return (
     <div className="flex gap-1">
       {[1, 2, 3, 4, 5].map((rating) => {
         const isActive = rating <= (hoverValue || value);
         return (
-          <button
+          <Wrapper
             key={rating}
-            type="button"
-            disabled={readonly}
+            {...(!readonly && { type: "button" as const })}
             onClick={() => handleClick(rating)}
             onMouseEnter={() => !readonly && setHoverValue(rating)}
             onMouseLeave={() => !readonly && setHoverValue(0)}
@@ -98,7 +100,13 @@ export function PoroRating({
               <circle cx="62" cy="50" r="5" className="fill-background" />
               <circle cx="63" cy="49" r="2" className="fill-foreground" />
               {/* Nose */}
-              <ellipse cx="50" cy="60" rx="4" ry="3" className="fill-pink-400" />
+              <ellipse
+                cx="50"
+                cy="60"
+                rx="4"
+                ry="3"
+                className="fill-pink-400"
+              />
               {/* Tongue */}
               <ellipse
                 cx="50"
@@ -141,10 +149,9 @@ export function PoroRating({
                 strokeWidth="1"
               />
             </svg>
-          </button>
+          </Wrapper>
         );
       })}
     </div>
   );
 }
-

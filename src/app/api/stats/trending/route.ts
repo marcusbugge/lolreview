@@ -7,9 +7,10 @@ export async function GET() {
   }
 
   try {
+    // Select specific columns for trending players
     const { data, error } = await supabase
       .from("players")
-      .select("*")
+      .select("id, game_name, tag_line, display_name, display_tag, profile_icon_id, summoner_level, region, search_count")
       .order("search_count", { ascending: false })
       .limit(10);
 

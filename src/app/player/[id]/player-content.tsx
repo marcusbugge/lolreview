@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { PoroRating } from "@/components/poro-rating";
 import { ArrowLeft, Loader2, Send } from "lucide-react";
-import { supabase, Review } from "@/lib/supabase";
+import { Review } from "@/lib/supabase";
 import { NavigationMenu } from "@/components/navigation-menu";
 
 const REGION_ROUTING: Record<string, string> = {
@@ -78,20 +78,18 @@ export default function PlayerContent({ id }: PlayerContentProps) {
         const summonerData = await summonerRes.json();
         setSummoner(summonerData);
 
-        // Fetch reviews from Supabase (don't fail if Supabase isn't configured)
+        // Fetch reviews via API (secure - doesn't expose IP addresses)
         try {
-          const { data: reviewsData, error: reviewsError } = await supabase
-            .from("reviews")
-            .select("*")
-            .eq("summoner_name", `${gameName}#${tagLine}`)
-            .order("created_at", { ascending: false });
-
-          if (!reviewsError) {
+          const reviewsRes = await fetch(
+            `/api/reviews?summoner_name=${encodeURIComponent(`${gameName}#${tagLine}`)}`
+          );
+          if (reviewsRes.ok) {
+            const reviewsData = await reviewsRes.json();
             setReviews(reviewsData || []);
           }
         } catch {
-          // Supabase not configured, continue without reviews
-          console.log("Supabase not configured");
+          // API error, continue without reviews
+          console.log("Could not fetch reviews");
         }
       } catch (err) {
         setError(err instanceof Error ? err.message : "Something went wrong");
@@ -147,9 +145,10 @@ export default function PlayerContent({ id }: PlayerContentProps) {
     }
   };
 
+  // Calculate average rating rounded to 1 decimal place
   const averageRating =
     reviews.length > 0
-      ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
+      ? Math.round((reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length) * 10) / 10
       : 0;
 
   if (isLoading) {
@@ -289,9 +288,9 @@ export default function PlayerContent({ id }: PlayerContentProps) {
             </div>
             {reviews.length > 0 && (
               <div className="flex items-center gap-2 mt-2">
-                <PoroRating value={Math.round(averageRating)} readonly size="sm" />
+                <PoroRating value={averageRating} readonly size="sm" />
                 <span className="text-sm text-muted-foreground">
-                  ({reviews.length} {reviews.length === 1 ? "review" : "reviews"})
+                  {averageRating.toFixed(1)} ({reviews.length} {reviews.length === 1 ? "review" : "reviews"})
                 </span>
               </div>
             )}

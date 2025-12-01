@@ -38,9 +38,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     if (response.ok) {
       const players = await response.json();
       playerPages = players.map(
-        (player: { game_name: string; tag_line: string; last_searched?: string }) => ({
-          url: `${siteUrl}/player/${encodeURIComponent(player.game_name)}-${encodeURIComponent(player.tag_line)}`,
-          lastModified: player.last_searched ? new Date(player.last_searched) : new Date(),
+        (player: {
+          game_name: string;
+          tag_line: string;
+          last_searched?: string;
+        }) => ({
+          url: `${siteUrl}/player/${encodeURIComponent(
+            player.game_name
+          )}-${encodeURIComponent(player.tag_line)}`,
+          lastModified: player.last_searched
+            ? new Date(player.last_searched)
+            : new Date(),
           changeFrequency: "weekly" as const,
           priority: 0.7,
         })
@@ -52,4 +60,3 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   return [...staticPages, ...playerPages];
 }
-

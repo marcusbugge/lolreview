@@ -7,9 +7,10 @@ export async function GET() {
   }
 
   try {
+    // Only select safe columns - exclude reviewer_ip
     const { data, error } = await supabase
       .from("reviews")
-      .select("*")
+      .select("id, summoner_name, region, rating, comment, created_at")
       .order("created_at", { ascending: false })
       .limit(20);
 

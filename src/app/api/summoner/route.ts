@@ -12,12 +12,16 @@ async function savePlayer(player: {
   region: string;
 }) {
   try {
+    // Normalize to lowercase for consistent storage
+    const normalizedGameName = player.gameName.toLowerCase();
+    const normalizedTagLine = player.tagLine.toLowerCase();
+    
     // First check if player exists
     const { data: existing } = await supabase
       .from("players")
       .select("search_count")
-      .eq("game_name", player.gameName)
-      .eq("tag_line", player.tagLine)
+      .eq("game_name", normalizedGameName)
+      .eq("tag_line", normalizedTagLine)
       .single();
 
     if (existing) {
@@ -30,16 +34,21 @@ async function savePlayer(player: {
           profile_icon_id: player.profileIconId,
           summoner_level: player.summonerLevel,
           region: player.region,
+          // Store the display name (original casing from Riot API)
+          display_name: player.gameName,
+          display_tag: player.tagLine,
         })
-        .eq("game_name", player.gameName)
-        .eq("tag_line", player.tagLine);
+        .eq("game_name", normalizedGameName)
+        .eq("tag_line", normalizedTagLine);
     } else {
       // New player, insert with search_count = 1
       await supabase
         .from("players")
         .insert({
-          game_name: player.gameName,
-          tag_line: player.tagLine,
+          game_name: normalizedGameName,
+          tag_line: normalizedTagLine,
+          display_name: player.gameName,
+          display_tag: player.tagLine,
           profile_icon_id: player.profileIconId,
           summoner_level: player.summonerLevel,
           region: player.region,

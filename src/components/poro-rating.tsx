@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useId } from "react";
 import { cn } from "@/lib/utils";
 
 interface PoroRatingProps {
@@ -10,6 +10,30 @@ interface PoroRatingProps {
   size?: "sm" | "md" | "lg";
 }
 
+// Get fill state for each poro: 'full', 'half', or 'empty'
+function getPoroFillState(
+  rating: number,
+  currentValue: number
+): "full" | "half" | "empty" {
+  if (currentValue >= rating) return "full";
+  if (currentValue >= rating - 0.5) return "half";
+  return "empty";
+}
+
+// Poro body component to avoid duplication
+function PoroBody({ fillClass }: { fillClass: string }) {
+  return (
+    <>
+      {/* Poro body */}
+      <ellipse cx="50" cy="55" rx="35" ry="30" className={fillClass} />
+      {/* Left ear */}
+      <ellipse cx="25" cy="30" rx="10" ry="15" className={fillClass} />
+      {/* Right ear */}
+      <ellipse cx="75" cy="30" rx="10" ry="15" className={fillClass} />
+    </>
+  );
+}
+
 export function PoroRating({
   value,
   onChange,
@@ -17,6 +41,7 @@ export function PoroRating({
   size = "md",
 }: PoroRatingProps) {
   const [hoverValue, setHoverValue] = useState(0);
+  const uniqueId = useId();
 
   const sizes = {
     sm: "w-5 h-5",
@@ -36,7 +61,18 @@ export function PoroRating({
   return (
     <div className="flex gap-1">
       {[1, 2, 3, 4, 5].map((rating) => {
-        const isActive = rating <= (hoverValue || value);
+        // For interactive mode, use whole numbers; for readonly, support decimals
+        const displayValue = hoverValue || value;
+        const fillState = readonly
+          ? getPoroFillState(rating, displayValue)
+          : rating <= displayValue
+          ? "full"
+          : "empty";
+
+        const isActive = fillState !== "empty";
+        const isHalf = fillState === "half";
+        const clipId = `poro-clip-${uniqueId}-${rating}`;
+
         return (
           <Wrapper
             key={rating}
@@ -60,39 +96,31 @@ export function PoroRating({
                   : "opacity-30"
               )}
             >
-              {/* Poro body */}
-              <ellipse
-                cx="50"
-                cy="55"
-                rx="35"
-                ry="30"
-                className={cn(
-                  "transition-colors duration-150",
-                  isActive ? "fill-primary" : "fill-muted-foreground/40"
-                )}
-              />
-              {/* Left ear */}
-              <ellipse
-                cx="25"
-                cy="30"
-                rx="10"
-                ry="15"
-                className={cn(
-                  "transition-colors duration-150",
-                  isActive ? "fill-primary" : "fill-muted-foreground/40"
-                )}
-              />
-              {/* Right ear */}
-              <ellipse
-                cx="75"
-                cy="30"
-                rx="10"
-                ry="15"
-                className={cn(
-                  "transition-colors duration-150",
-                  isActive ? "fill-primary" : "fill-muted-foreground/40"
-                )}
-              />
+              {/* For half-filled: show gray base + clipped colored overlay */}
+              {isHalf && (
+                <>
+                  <defs>
+                    <clipPath id={clipId}>
+                      <rect x="0" y="0" width="50" height="100" />
+                    </clipPath>
+                  </defs>
+                  {/* Gray background poro */}
+                  <PoroBody fillClass="fill-muted-foreground/40" />
+                  {/* Colored left half */}
+                  <g clipPath={`url(#${clipId})`}>
+                    <PoroBody fillClass="fill-primary" />
+                  </g>
+                </>
+              )}
+
+              {/* Full or empty poro */}
+              {!isHalf && (
+                <PoroBody
+                  fillClass={
+                    isActive ? "fill-primary" : "fill-muted-foreground/40"
+                  }
+                />
+              )}
               {/* Left eye */}
               <circle cx="38" cy="50" r="5" className="fill-background" />
               <circle cx="39" cy="49" r="2" className="fill-foreground" />

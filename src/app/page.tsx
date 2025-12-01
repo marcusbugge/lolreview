@@ -38,18 +38,32 @@ interface PlayerSuggestion {
 
 // Example reviews that float in the background
 const floatingReviews = [
-  { name: "Caps", tag: "EUW", rating: 5, icon: 5367, comment: "Best mid EU 🔥", position: "left" as const },
-  { name: "Faker", tag: "KR1", rating: 5, icon: 6, comment: "The GOAT", position: "right" as const },
+  {
+    name: "Caps",
+    tag: "EUW",
+    rating: 5,
+    icon: 5367,
+    comment: "Best mid EU 🔥",
+    position: "left" as const,
+  },
+  {
+    name: "Faker",
+    tag: "KR1",
+    rating: 5,
+    icon: 6,
+    comment: "The GOAT",
+    position: "right" as const,
+  },
 ];
 
-function FloatingReview({ review }: { review: typeof floatingReviews[0] }) {
+function FloatingReview({ review }: { review: (typeof floatingReviews)[0] }) {
   const isCaps = review.name === "Caps";
-  
+
   return (
     <div
       className={`fixed hidden lg:flex items-center gap-3 px-4 py-3 bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 shadow-2xl shadow-primary/10 opacity-50 hover:opacity-100 hover:bg-white/10 transition-all duration-300 cursor-default select-none hover:scale-105 animate-float ${
-        isCaps 
-          ? "left-[22%] bottom-[25%] rotate-[-3deg]" 
+        isCaps
+          ? "left-[22%] bottom-[25%] rotate-[-3deg]"
           : "right-[22%] top-[15%] rotate-[3deg]"
       }`}
       style={{
@@ -63,7 +77,9 @@ function FloatingReview({ review }: { review: typeof floatingReviews[0] }) {
       />
       <div className="flex flex-col gap-1">
         <div className="flex items-center gap-2">
-          <span className="font-semibold text-sm text-foreground">{review.name}</span>
+          <span className="font-semibold text-sm text-foreground">
+            {review.name}
+          </span>
           <span className="text-muted-foreground text-xs">#{review.tag}</span>
         </div>
         <PoroRating value={review.rating} readonly size="sm" />
@@ -167,7 +183,7 @@ export default function Home() {
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     const { gameName, tagLine } = parseRiotId(riotId);
-    
+
     if (!gameName.trim() || !tagLine.trim()) {
       setError("Please enter name#tag (e.g. Faker#KR1)");
       return;
@@ -178,9 +194,13 @@ export default function Home() {
     setShowSuggestions(false);
 
     try {
-      const regionData = REGIONS.find(r => r.value === region);
+      const regionData = REGIONS.find((r) => r.value === region);
       const response = await fetch(
-        `/api/summoner?gameName=${encodeURIComponent(gameName)}&tagLine=${encodeURIComponent(tagLine)}&region=${region}&routing=${regionData?.routing || 'europe'}`
+        `/api/summoner?gameName=${encodeURIComponent(
+          gameName
+        )}&tagLine=${encodeURIComponent(tagLine)}&region=${region}&routing=${
+          regionData?.routing || "europe"
+        }`
       );
 
       if (!response.ok) {
@@ -188,7 +208,11 @@ export default function Home() {
         throw new Error(data.error || "Player not found");
       }
 
-      router.push(`/player/${encodeURIComponent(gameName)}-${encodeURIComponent(tagLine)}?region=${region}`);
+      router.push(
+        `/player/${encodeURIComponent(gameName)}-${encodeURIComponent(
+          tagLine
+        )}?region=${region}`
+      );
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
     } finally {
@@ -199,78 +223,141 @@ export default function Home() {
   return (
     <main className="min-h-screen flex flex-col items-center justify-center px-4 relative overflow-hidden">
       <NavigationMenu />
-      
+
       {/* Aurora background */}
       <div className="fixed inset-0 -z-10 overflow-hidden">
         {/* Base dark background */}
         <div className="absolute inset-0 bg-background" />
-        
-        {/* SVG Aurora Effect */}
-        <svg className="absolute inset-0 w-full h-full" preserveAspectRatio="xMidYMid slice">
+
+        {/* Static fallback for mobile/reduced motion (CSS handles visibility) */}
+        <div className="absolute inset-0 bg-aurora-static md:hidden" />
+
+        {/* SVG Aurora Effect - hidden on mobile via CSS */}
+        <svg
+          className="absolute inset-0 w-full h-full aurora-blur-heavy hidden md:block"
+          preserveAspectRatio="xMidYMid slice"
+        >
           <defs>
-            {/* Blur filter */}
-            <filter id="aurora-blur" x="-50%" y="-50%" width="200%" height="200%">
-              <feGaussianBlur in="SourceGraphic" stdDeviation="60" />
+            {/* Blur filter - reduced stdDeviation for better performance */}
+            <filter
+              id="aurora-blur"
+              x="-50%"
+              y="-50%"
+              width="200%"
+              height="200%"
+            >
+              <feGaussianBlur in="SourceGraphic" stdDeviation="40" />
             </filter>
-            
+
             {/* Gradient definitions */}
-            <linearGradient id="aurora-gradient-1" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="rgb(139, 92, 246)" stopOpacity="0.25" />
-              <stop offset="50%" stopColor="rgb(167, 139, 250)" stopOpacity="0.12" />
-              <stop offset="100%" stopColor="rgb(196, 181, 253)" stopOpacity="0.05" />
+            <linearGradient
+              id="aurora-gradient-1"
+              x1="0%"
+              y1="0%"
+              x2="100%"
+              y2="100%"
+            >
+              <stop
+                offset="0%"
+                stopColor="rgb(139, 92, 246)"
+                stopOpacity="0.25"
+              />
+              <stop
+                offset="50%"
+                stopColor="rgb(167, 139, 250)"
+                stopOpacity="0.12"
+              />
+              <stop
+                offset="100%"
+                stopColor="rgb(196, 181, 253)"
+                stopOpacity="0.05"
+              />
             </linearGradient>
-            
-            <linearGradient id="aurora-gradient-2" x1="100%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor="rgb(124, 58, 237)" stopOpacity="0.2" />
-              <stop offset="50%" stopColor="rgb(139, 92, 246)" stopOpacity="0.1" />
-              <stop offset="100%" stopColor="rgb(91, 33, 182)" stopOpacity="0.05" />
+
+            <linearGradient
+              id="aurora-gradient-2"
+              x1="100%"
+              y1="0%"
+              x2="0%"
+              y2="100%"
+            >
+              <stop
+                offset="0%"
+                stopColor="rgb(124, 58, 237)"
+                stopOpacity="0.2"
+              />
+              <stop
+                offset="50%"
+                stopColor="rgb(139, 92, 246)"
+                stopOpacity="0.1"
+              />
+              <stop
+                offset="100%"
+                stopColor="rgb(91, 33, 182)"
+                stopOpacity="0.05"
+              />
             </linearGradient>
-            
-            <linearGradient id="aurora-gradient-3" x1="50%" y1="0%" x2="50%" y2="100%">
-              <stop offset="0%" stopColor="rgb(192, 132, 252)" stopOpacity="0.15" />
-              <stop offset="100%" stopColor="rgb(126, 34, 206)" stopOpacity="0.03" />
+
+            <linearGradient
+              id="aurora-gradient-3"
+              x1="50%"
+              y1="0%"
+              x2="50%"
+              y2="100%"
+            >
+              <stop
+                offset="0%"
+                stopColor="rgb(192, 132, 252)"
+                stopOpacity="0.15"
+              />
+              <stop
+                offset="100%"
+                stopColor="rgb(126, 34, 206)"
+                stopOpacity="0.03"
+              />
             </linearGradient>
           </defs>
-          
+
           {/* Aurora waves */}
           <g filter="url(#aurora-blur)">
-            <ellipse 
-              cx="20%" 
-              cy="30%" 
-              rx="40%" 
-              ry="25%" 
+            <ellipse
+              cx="20%"
+              cy="30%"
+              rx="40%"
+              ry="25%"
               fill="url(#aurora-gradient-1)"
               className="animate-aurora-1"
             />
-            <ellipse 
-              cx="80%" 
-              cy="60%" 
-              rx="35%" 
-              ry="30%" 
+            <ellipse
+              cx="80%"
+              cy="60%"
+              rx="35%"
+              ry="30%"
               fill="url(#aurora-gradient-2)"
               className="animate-aurora-2"
             />
-            <ellipse 
-              cx="50%" 
-              cy="80%" 
-              rx="50%" 
-              ry="20%" 
+            <ellipse
+              cx="50%"
+              cy="80%"
+              rx="50%"
+              ry="20%"
               fill="url(#aurora-gradient-3)"
               className="animate-aurora-3"
             />
           </g>
         </svg>
-        
-        {/* Additional glow layer */}
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-primary/5 rounded-full blur-[120px] animate-pulse-slow" />
-        
+
+        {/* Additional glow layer - hidden on mobile */}
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-primary/5 rounded-full blur-[80px] animate-pulse-slow aurora-blur-heavy hidden md:block" />
+
         {/* Subtle noise texture */}
-        <div className="absolute inset-0 opacity-[0.02] mix-blend-overlay" 
+        <div
+          className="absolute inset-0 opacity-[0.02] mix-blend-overlay"
           style={{
             backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
           }}
         />
-        
+
         {/* Radial vignette */}
         <div className="absolute inset-0 bg-radial-gradient" />
       </div>
@@ -279,7 +366,7 @@ export default function Home() {
       {floatingReviews.map((review) => (
         <FloatingReview key={review.name} review={review} />
       ))}
-      
+
       <div className="w-full max-w-md space-y-10 relative z-10">
         {/* Logo/Title */}
         <div className="text-center space-y-3">
@@ -308,12 +395,14 @@ export default function Home() {
                   setRiotId(e.target.value);
                   setSelectedIndex(-1);
                 }}
-                onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
+                onFocus={() =>
+                  suggestions.length > 0 && setShowSuggestions(true)
+                }
                 onKeyDown={handleKeyDown}
                 autoComplete="off"
                 className="h-14 px-4 bg-white/5 backdrop-blur-xl border border-white/10 focus-visible:border-primary/40 focus-visible:ring-0 text-base placeholder:text-muted-foreground/40 transition-all duration-200 hover:bg-white/[0.07] hover:border-white/15"
               />
-              
+
               {/* Suggestions dropdown */}
               {showSuggestions && suggestions.length > 0 && (
                 <div
@@ -332,7 +421,9 @@ export default function Home() {
                       }`}
                     >
                       <img
-                        src={`https://ddragon.leagueoflegends.com/cdn/14.1.1/img/profileicon/${player.profile_icon_id || 29}.png`}
+                        src={`https://ddragon.leagueoflegends.com/cdn/14.1.1/img/profileicon/${
+                          player.profile_icon_id || 29
+                        }.png`}
                         alt=""
                         className="w-6 h-6 rounded-full"
                       />
@@ -354,7 +445,11 @@ export default function Home() {
               </SelectTrigger>
               <SelectContent className="bg-card/95 backdrop-blur-xl border border-white/10 min-w-[90px]">
                 {REGIONS.map((r) => (
-                  <SelectItem key={r.value} value={r.value} className="focus:bg-primary/20 text-sm">
+                  <SelectItem
+                    key={r.value}
+                    value={r.value}
+                    className="focus:bg-primary/20 text-sm"
+                  >
                     {r.label}
                   </SelectItem>
                 ))}
@@ -382,14 +477,17 @@ export default function Home() {
           </div>
 
           {error && (
-            <p className="text-destructive text-sm text-center animate-in fade-in slide-in-from-top-1">{error}</p>
+            <p className="text-destructive text-sm text-center animate-in fade-in slide-in-from-top-1">
+              {error}
+            </p>
           )}
         </form>
 
         {/* Hint */}
         <div className="text-center">
           <p className="text-xs text-muted-foreground/50 tracking-wide">
-            e.g. <span className="text-muted-foreground/70 font-medium">Faker</span>
+            e.g.{" "}
+            <span className="text-muted-foreground/70 font-medium">Faker</span>
             <span className="text-primary/60">#</span>
             <span className="text-muted-foreground/70 font-medium">KR1</span>
           </p>

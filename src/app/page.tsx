@@ -276,8 +276,8 @@ export default function Home() {
       </div>
 
       {/* Floating example reviews */}
-      {floatingReviews.map((review, index) => (
-        <FloatingReview key={review.name} review={review} index={index} />
+      {floatingReviews.map((review) => (
+        <FloatingReview key={review.name} review={review} />
       ))}
       
       <div className="w-full max-w-md space-y-10 relative z-10">
